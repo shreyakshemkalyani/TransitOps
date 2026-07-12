@@ -1,6 +1,8 @@
 import CredentialsProvider from "next-auth/providers/credentials";
 import bcrypt from "bcryptjs";
-import { prisma } from "./prisma";
+import { db } from "./db";
+import { users } from "@/db/schema";
+import { eq } from "drizzle-orm";
 
 export const authOptions = {
   providers: [
@@ -15,9 +17,8 @@ export const authOptions = {
           throw new Error("Invalid credentials");
         }
         
-        const user = await prisma.user.findUnique({
-          where: { email: credentials.email }
-        });
+        const userResult = await db.select().from(users).where(eq(users.email, credentials.email));
+        const user = userResult[0];
 
         if (!user) {
           throw new Error("Invalid credentials");

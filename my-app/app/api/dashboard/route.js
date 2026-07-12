@@ -1,57 +1,60 @@
 import { NextResponse } from "next/server";
-import { prisma } from "@/lib/prisma";
+import { db } from "@/lib/db";
+import { vehicles, trips, drivers } from "@/db/schema";
+import { count, eq, inArray, not, desc, sql } from "drizzle-orm";
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request) {
   try {
     const { searchParams } = new URL(request.url);
-    // In a real app, apply these filters to the Prisma queries
     const vehicleType = searchParams.get('vehicleType');
     const status = searchParams.get('status');
     const region = searchParams.get('region');
 
     const [
-      activeVehicles,
-      availableVehicles,
-      vehiclesInShop,
-      activeTrips,
-      pendingTrips,
-      driversOnDuty,
+      activeVehiclesResult,
+      availableVehiclesResult,
+      vehiclesInShopResult,
+      activeTripsResult,
+      pendingTripsResult,
+      driversOnDutyResult,
       recentTrips,
       vehicleStatusCounts
     ] = await Promise.all([
-      prisma.vehicle.count({ where: { status: { not: 'Retired' } } }),
-      prisma.vehicle.count({ where: { status: 'Available' } }),
-      prisma.vehicle.count({ where: { status: 'In Shop' } }),
-      prisma.trip.count({ where: { status: { in: ['Dispatched', 'On Trip'] } } }),
-      prisma.trip.count({ where: { status: 'Draft' } }),
-      prisma.driver.count({ where: { status: 'On Trip' } }),
-      prisma.trip.findMany({
-        take: 5,
-        orderBy: { createdAt: 'desc' },
-        include: {
-          vehicleRel: { select: { name: true, registrationNumber: true } },
-          driverRel: { select: { name: true } }
+      db.select({ value: count() }).from(vehicles).where(not(eq(vehicles.status, 'Retired'))),
+      db.select({ value: count() }).from(vehicles).where(eq(vehicles.status, 'Available')),
+      db.select({ value: count() }).from(vehicles).where(eq(vehicles.status, 'In Shop')),
+      db.select({ value: count() }).from(trips).where(inArray(trips.status, ['Dispatched', 'On Trip'])),
+      db.select({ value: count() }).from(trips).where(eq(trips.status, 'Draft')),
+      db.select({ value: count() }).from(drivers).where(eq(drivers.status, 'On Trip')),
+      db.query.trips.findMany({
+        limit: 5,
+        orderBy: [desc(trips.createdAt)],
+        with: {
+          vehicleRel: { columns: { name: true, registrationNumber: true } },
+          driverRel: { columns: { name: true } }
         }
       }),
-      prisma.vehicle.groupBy({
-        by: ['status'],
-        _count: { status: true }
-      })
+      db.select({ status: vehicles.status, count: count() }).from(vehicles).groupBy(vehicles.status)
     ]);
+
+    const activeVehicles = activeVehiclesResult[0].value;
+    const availableVehicles = availableVehiclesResult[0].value;
+    const vehiclesInShop = vehiclesInShopResult[0].value;
+    const activeTripsCount = activeTripsResult[0].value;
+    const pendingTripsCount = pendingTripsResult[0].value;
+    const driversOnDutyCount = driversOnDutyResult[0].value;
 
     const fleetUtilization = activeVehicles > 0 
       ? Math.round(((activeVehicles - availableVehicles - vehiclesInShop) / activeVehicles) * 100) 
       : 0;
 
-    // Format vehicle status distribution for Recharts PieChart
     const statusDistribution = vehicleStatusCounts.map(v => ({
       name: v.status,
-      value: v._count.status
+      value: v.count
     }));
 
-    // Mock Monthly Expenses (in a real scenario, group Expense by month)
     const monthlyExpenses = [
       { month: 'Jan', amount: 45000 },
       { month: 'Feb', amount: 52000 },
@@ -67,9 +70,9 @@ export async function GET(request) {
         activeVehicles,
         availableVehicles,
         vehiclesInShop,
-        activeTrips,
-        pendingTrips,
-        driversOnDuty,
+        activeTrips: activeTripsCount,
+        pendingTrips: pendingTripsCount,
+        driversOnDuty: driversOnDutyCount,
         fleetUtilization,
       },
       recentTrips,

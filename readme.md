@@ -1,281 +1,36 @@
-npx create-next-app@latest
-npm install prisma @prisma/client
+This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
-npm install bcryptjs jsonwebtoken cookie-parser
+## Getting Started
 
-npm install react-hook-form
+First, run the development server:
 
-npm install axios
+```bash
+npm run dev
+# or
+yarn dev
+# or
+pnpm dev
+# or
+bun dev
+```
 
-npm install react-hot-toast
+Open [http://localhost:3000](http://localhost:3000) with your browser to see the result.
 
-npm install flowbite flowbite-react
+You can start editing the page by modifying `app/page.js`. The page auto-updates as you edit the file.
 
-npm install recharts
+This project uses [`next/font`](https://nextjs.org/docs/app/building-your-application/optimizing/fonts) to automatically optimize and load [Geist](https://vercel.com/font), a new font family for Vercel.
 
-npm install lucide-react react-icons
+## Learn More
 
+To learn more about Next.js, take a look at the following resources:
 
+- [Next.js Documentation](https://nextjs.org/docs) - learn about Next.js features and API.
+- [Learn Next.js](https://nextjs.org/learn) - an interactive Next.js tutorial.
 
+You can check out [the Next.js GitHub repository](https://github.com/vercel/next.js) - your feedback and contributions are welcome!
 
-Project structure:-
-transit-ops/
-│
-├── app/
-│   ├── (auth)/
-│   │   └── login/
-│   │       └── page.js
-│   │
-│   ├── dashboard/
-│   │   └── page.js
-│   │
-│   ├── vehicles/
-│   │   ├── page.js
-│   │   ├── add/
-│   │   │   └── page.js
-│   │   └── edit/
-│   │       └── [id]/
-│   │           └── page.js
-│   │
-│   ├── drivers/
-│   │   ├── page.js
-│   │   ├── add/
-│   │   │   └── page.js
-│   │   └── edit/
-│   │       └── [id]/
-│   │           └── page.js
-│   │
-│   ├── trips/
-│   │   ├── page.js
-│   │   ├── add/
-│   │   │   └── page.js
-│   │   └── [id]/
-│   │       └── page.js
-│   │
-│   ├── maintenance/
-│   │   ├── page.js
-│   │   └── add/
-│   │       └── page.js
-│   │
-│   ├── fuel/
-│   │   ├── page.js
-│   │   └── add/
-│   │       └── page.js
-│   │
-│   ├── expenses/
-│   │   ├── page.js
-│   │   └── add/
-│   │       └── page.js
-│   │
-│   ├── api/
-│   │   ├── auth/
-│   │   ├── dashboard/
-│   │   ├── vehicles/
-│   │   ├── drivers/
-│   │   ├── trips/
-│   │   ├── maintenance/
-│   │   ├── fuel/
-│   │   └── expenses/
-│   │
-│   ├── layout.js
-│   ├── page.js
-│   └── globals.css
-│
-├── components/
-│   ├── layout/
-│   │   ├── Navbar.jsx
-│   │   ├── Sidebar.jsx
-│   │   └── ProtectedRoute.jsx
-│   │
-│   ├── dashboard/
-│   │   ├── DashboardCards.jsx
-│   │   ├── FleetChart.jsx
-│   │   └── ExpenseChart.jsx
-│   │
-│   ├── vehicles/
-│   ├── drivers/
-│   ├── trips/
-│   ├── maintenance/
-│   ├── fuel/
-│   ├── expenses/
-│   │
-│   └── common/
-│       ├── Loader.jsx
-│       ├── Modal.jsx
-│       ├── DeleteModal.jsx
-│       ├── SearchBar.jsx
-│       └── StatusBadge.jsx
-│
-├── lib/
-│   ├── prisma.js
-│   ├── jwt.js
-│   ├── auth.js
-│   └── validations.js
-│
-├── middleware.js
-│
-├── prisma/
-│   └── schema.prisma
-│
-├── public/
-│
-├── .env
-├── package.json
-└── README.md
+## Deploy on Vercel
 
+The easiest way to deploy your Next.js app is to use the [Vercel Platform](https://vercel.com/new?utm_medium=default-template&filter=next.js&utm_source=create-next-app&utm_campaign=create-next-app-readme) from the creators of Next.js.
 
-
-👩 Shreya (Authentication + Dashboard)
-Owns
-app/(auth)/
-app/dashboard/
-
-app/api/auth/
-app/api/dashboard/
-
-components/layout/
-components/dashboard/
-
-lib/auth.js
-lib/jwt.js
-middleware.js
-Responsibilities
-Login
-Logout
-JWT Authentication
-Middleware
-Dashboard
-Charts
-KPI Cards
-Navbar
-Sidebar
-👨 Sahil (Vehicle + Driver)
-Owns
-app/vehicles/
-app/drivers/
-
-app/api/vehicles/
-app/api/drivers/
-
-components/vehicles/
-components/drivers/
-Responsibilities
-
-Vehicle CRUD
-
-Driver CRUD
-
-Search
-
-Filters
-
-Validation
-
-Status
-
-👨 Dhruv (Trip Management)
-Owns
-app/trips/
-
-app/api/trips/
-
-components/trips/
-Responsibilities
-
-Trip CRUD
-
-Dispatch
-
-Complete
-
-Cancel
-
-Business Rules
-
-Status Automation
-
-👨 Dev (Maintenance + Fuel + Expenses)
-Owns
-app/maintenance/
-app/fuel/
-app/expenses/
-
-app/api/maintenance/
-app/api/fuel/
-app/api/expenses/
-
-components/maintenance/
-components/fuel/
-components/expenses/
-Responsibilities
-
-Maintenance
-
-Fuel Logs
-
-Expense Logs
-
-Operational Cost
-
-Fuel Efficiency
-
-CSV Export (if time permits)
-
-Shared Files (Nobody Modifies Without Discussion)
-prisma/schema.prisma
-
-lib/prisma.js
-
-globals.css
-
-layout.js
-
-package.json
-
-.env
-API Ownership
-API	Owner
-/api/auth/*	Shreya
-/api/dashboard/*	Shreya
-/api/vehicles/*	Sahil
-/api/drivers/*	Sahil
-/api/trips/*	Dhruv
-/api/maintenance/*	Dev
-/api/fuel/*	Dev
-/api/expenses/*	Dev
-Prisma Models
-User
-Role
-Vehicle
-Driver
-Trip
-Maintenance
-FuelLog
-Expense
-Git Branches
-main
-
-feature/shreya-auth-dashboard
-
-feature/sahil-vehicle-driver
-
-feature/dhruv-trip-management
-
-feature/dev-maintenance-expenses
-Integration Flow
-Vehicle
-     │
-     ▼
-Driver
-     │
-     ▼
-Trip
-     │
-     ▼
-Maintenance
-     │
-     ▼
-Fuel & Expenses
-     │
-     ▼
-Dashboard Analytics
+Check out our [Next.js deployment documentation](https://nextjs.org/docs/app/building-your-application/deploying) for more details.
