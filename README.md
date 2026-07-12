@@ -1,3 +1,15 @@
+
+visit https://transit-ops-sage.vercel.app/ to test the project
+
+Dummy credentials:
+email: admin@transitops.in
+password: manager@transitops.in
+role: fleet manager
+
+
+
+
+
 This is a [Next.js](https://nextjs.org) project bootstrapped with [`create-next-app`](https://github.com/vercel/next.js/tree/canary/packages/create-next-app).
 
 ## Getting Started
