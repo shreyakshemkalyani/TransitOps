@@ -5,14 +5,6 @@ datasource db {
   provider = "postgresql"
 }
 
-enum TripStatus {
-  DRAFT
-  DISPATCHED
-  IN_TRANSIT
-  COMPLETED
-  CANCELLED
-}
-
 model User {
   id        String   @id @default(cuid())
   name      String
@@ -22,18 +14,28 @@ model User {
   createdAt DateTime @default(now())
 }
 
-
 model Trip {
-  id          String     @id @default(cuid())
-  route       String
-  vehicle     String?
-  driver      String?
-  cargoWeight Int        @default(0)
-  distanceKm  Int        @default(0)
-  status      TripStatus @default(DRAFT)
-  time        String?    @default("")
-  createdAt   DateTime   @default(now())
-  updatedAt   DateTime   @updatedAt
+  id              String   @id @default(cuid())
+  tripNumber      String?  @unique
+  source          String?
+  destination     String?
+  plannedDistance Float?
+  eta             String?
+  
+  route           String?
+  vehicle         String?
+  driver          String?
+  cargoWeight     Int        @default(0)
+  distanceKm      Int        @default(0)
+  status          String     @default("DRAFT")
+  time            String?    @default("")
+  createdAt       DateTime   @default(now())
+  updatedAt       DateTime   @default(now()) @updatedAt
+
+  vehicleId       String?
+  vehicleRel      Vehicle? @relation(fields: [vehicleId], references: [id])
+  driverId        String?
+  driverRel       Driver?  @relation(fields: [driverId], references: [id])
 }
 
 model Vehicle {
@@ -64,25 +66,6 @@ model Driver {
   createdAt          DateTime @default(now())
 
   trips              Trip[]
-}
-
-model Trip {
-  id             String   @id @default(cuid())
-  tripNumber     String   @unique // TR001, TR002
-  source         String
-  destination    String
-  cargoWeight    Float    // in kg
-  plannedDistance Float    // in km
-  status         String   // Draft, Dispatched, Completed, Cancelled
-  eta            String?  // e.g. "45 min", "Awaiting driver"
-  
-  vehicleId      String?
-  vehicle        Vehicle? @relation(fields: [vehicleId], references: [id])
-  
-  driverId       String?
-  driver         Driver?  @relation(fields: [driverId], references: [id])
-
-  createdAt      DateTime @default(now())
 }
 
 model Maintenance {

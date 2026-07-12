@@ -182,9 +182,9 @@ export default function DashboardPage() {
                 <tr><td colSpan="5" className="py-4 text-center text-slate-500">No recent trips</td></tr>
               ) : recentTrips.map((trip) => (
                 <tr key={trip.id}>
-                  <td className="py-3 font-medium text-white">{trip.tripNumber}</td>
-                  <td className="py-3">{trip.vehicle ? trip.vehicle.name : 'Unassigned'}</td>
-                  <td className="py-3">{trip.driver ? trip.driver.name : 'Unassigned'}</td>
+                  <td className="py-3 font-medium text-white">{trip.tripNumber || trip.id.substring(0, 8)}</td>
+                  <td className="py-3">{trip.vehicleRel ? trip.vehicleRel.name : (trip.vehicle || 'Unassigned')}</td>
+                  <td className="py-3">{trip.driverRel ? trip.driverRel.name : (trip.driver || 'Unassigned')}</td>
                   <td className="py-3">
                     <span className={`inline-flex items-center rounded-full border px-2.5 py-0.5 text-xs font-semibold ${getStatusColor(trip.status)}`}>
                       {trip.status}

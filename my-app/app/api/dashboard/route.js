@@ -31,8 +31,8 @@ export async function GET(request) {
         take: 5,
         orderBy: { createdAt: 'desc' },
         include: {
-          vehicle: { select: { name: true, registrationNumber: true } },
-          driver: { select: { name: true } }
+          vehicleRel: { select: { name: true, registrationNumber: true } },
+          driverRel: { select: { name: true } }
         }
       }),
       prisma.vehicle.groupBy({
