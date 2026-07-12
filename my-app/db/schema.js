@@ -31,6 +31,7 @@ export const drivers = pgTable("Driver", {
   expiryDate: timestamp("expiryDate").notNull(),
   contactNumber: text("contactNumber").notNull(),
   status: text("status").notNull(),
+  safetyScore: doublePrecision("safetyScore").default(100.0).notNull(),
   tripCompletionRate: doublePrecision("tripCompletionRate").notNull(),
   createdAt: timestamp("createdAt").defaultNow().notNull(),
 });

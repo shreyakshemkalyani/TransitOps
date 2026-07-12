@@ -1,50 +1,68 @@
 import { NextResponse } from "next/server";
 import { db } from "@/lib/db";
-import { trips } from "@/db/schema";
+import { trips, vehicles, drivers } from "@/db/schema";
 import { eq } from "drizzle-orm";
 
 export const dynamic = 'force-dynamic';
 
 export async function GET(request, { params }) {
-  const { id } = await params;
-  const tripResult = await db.select().from(trips).where(eq(trips.id, id));
-  
-  if (tripResult.length === 0) {
-    return NextResponse.json(
-      { success: false, message: "Trip not found." },
-      { status: 404 }
-    );
-  }
+  try {
+    const { id } = await params;
+    const trip = await db.query.trips.findFirst({
+      where: eq(trips.id, id),
+      with: { vehicleRel: true, driverRel: true }
+    });
 
-  return NextResponse.json({ success: true, trip: tripResult[0] });
+    if (!trip) return NextResponse.json({ success: false, message: "Trip not found" }, { status: 404 });
+    return NextResponse.json({ success: true, trip });
+  } catch (error) {
+    return NextResponse.json({ success: false, message: "Failed to fetch trip" }, { status: 500 });
+  }
 }
 
 export async function PATCH(request, { params }) {
-  const { id } = await params;
-  const body = await request.json();
-  const { route, vehicle, driver, cargoWeight, distanceKm, status, time } = body;
+  try {
+    const { id } = await params;
+    const { action } = await request.json(); // action can be 'dispatch', 'complete', 'cancel'
+    
+    const trip = await db.query.trips.findFirst({ where: eq(trips.id, id) });
+    if (!trip) return NextResponse.json({ success: false, message: "Trip not found" }, { status: 404 });
 
-  const updateData = {};
-  if (route !== undefined) updateData.route = route;
-  if (vehicle !== undefined) updateData.vehicle = vehicle;
-  if (driver !== undefined) updateData.driver = driver;
-  if (cargoWeight !== undefined) updateData.cargoWeight = Number(cargoWeight);
-  if (distanceKm !== undefined) updateData.distanceKm = Number(distanceKm);
-  if (status !== undefined) updateData.status = status;
-  if (time !== undefined) updateData.time = time;
-  updateData.updatedAt = new Date();
+    if (action === 'dispatch') {
+      if (trip.status !== 'Draft') return NextResponse.json({ success: false, message: "Only Draft trips can be dispatched" }, { status: 400 });
+      
+      // Mark Trip, Vehicle, and Driver as On Trip
+      await db.update(trips).set({ status: 'Dispatched' }).where(eq(trips.id, id));
+      await db.update(vehicles).set({ status: 'On Trip' }).where(eq(vehicles.id, trip.vehicleId));
+      await db.update(drivers).set({ status: 'On Trip' }).where(eq(drivers.id, trip.driverId));
+      
+      return NextResponse.json({ success: true, message: "Trip dispatched successfully" });
+    }
 
-  const tripResult = await db.update(trips)
-    .set(updateData)
-    .where(eq(trips.id, id))
-    .returning();
+    if (action === 'complete') {
+      if (trip.status !== 'Dispatched') return NextResponse.json({ success: false, message: "Only Dispatched trips can be completed" }, { status: 400 });
+      
+      await db.update(trips).set({ status: 'Completed' }).where(eq(trips.id, id));
+      await db.update(vehicles).set({ status: 'Available' }).where(eq(vehicles.id, trip.vehicleId));
+      await db.update(drivers).set({ status: 'Available' }).where(eq(drivers.id, trip.driverId));
+      
+      return NextResponse.json({ success: true, message: "Trip completed" });
+    }
 
-  return NextResponse.json({ success: true, trip: tripResult[0] });
+    if (action === 'cancel') {
+      await db.update(trips).set({ status: 'Cancelled' }).where(eq(trips.id, id));
+      
+      if (trip.status === 'Dispatched') {
+         await db.update(vehicles).set({ status: 'Available' }).where(eq(vehicles.id, trip.vehicleId));
+         await db.update(drivers).set({ status: 'Available' }).where(eq(drivers.id, trip.driverId));
+      }
+      return NextResponse.json({ success: true, message: "Trip cancelled" });
+    }
+
+    return NextResponse.json({ success: false, message: "Invalid action" }, { status: 400 });
+
+  } catch (error) {
+    console.error("PATCH /api/trips/[id] error:", error);
+    return NextResponse.json({ success: false, message: "Failed to update trip" }, { status: 500 });
+  }
 }
-
-export async function DELETE(request, { params }) {
-  const { id } = await params;
-  await db.delete(trips).where(eq(trips.id, id));
-
-  return NextResponse.json({ success: true, message: "Trip deleted." });
-}
