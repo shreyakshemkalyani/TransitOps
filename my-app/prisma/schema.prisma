@@ -4,7 +4,6 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
 }
 
 model User {
@@ -12,6 +11,81 @@ model User {
   name      String
   email     String   @unique
   password  String
-  role      String
+  role      String   // Fleet Manager, Dispatcher, Safety Officer, Financial Analyst
   createdAt DateTime @default(now())
+}
+
+model Vehicle {
+  id                 String   @id @default(cuid())
+  registrationNumber String   @unique
+  name               String
+  type               String   // Van, Truck, Mini
+  capacity           Float    // in kg
+  odometer           Float    // in km
+  acquisitionCost    Float
+  status             String   // Available, On Trip, In Shop, Retired
+  createdAt          DateTime @default(now())
+  
+  trips              Trip[]
+  maintenanceRecords Maintenance[]
+  expenses           Expense[]
+}
+
+model Driver {
+  id                 String   @id @default(cuid())
+  name               String
+  licenseNo          String   @unique
+  category           String   // LMV, HMV
+  expiryDate         DateTime
+  contactNumber      String
+  status             String   // Available, On Trip, Off Duty, Suspended
+  tripCompletionRate Float    // percentage
+  createdAt          DateTime @default(now())
+
+  trips              Trip[]
+}
+
+model Trip {
+  id             String   @id @default(cuid())
+  tripNumber     String   @unique // TR001, TR002
+  source         String
+  destination    String
+  cargoWeight    Float    // in kg
+  plannedDistance Float    // in km
+  status         String   // Draft, Dispatched, Completed, Cancelled
+  eta            String?  // e.g. "45 min", "Awaiting driver"
+  
+  vehicleId      String?
+  vehicle        Vehicle? @relation(fields: [vehicleId], references: [id])
+  
+  driverId       String?
+  driver         Driver?  @relation(fields: [driverId], references: [id])
+
+  createdAt      DateTime @default(now())
+}
+
+model Maintenance {
+  id          String   @id @default(cuid())
+  description String
+  cost        Float
+  status      String   // Open, Closed
+  startDate   DateTime
+  endDate     DateTime?
+  
+  vehicleId   String
+  vehicle     Vehicle  @relation(fields: [vehicleId], references: [id])
+
+  createdAt   DateTime @default(now())
+}
+
+model Expense {
+  id          String   @id @default(cuid())
+  category    String   // Fuel, Maintenance, Toll, Other
+  amount      Float
+  date        DateTime
+  
+  vehicleId   String?
+  vehicle     Vehicle? @relation(fields: [vehicleId], references: [id])
+
+  createdAt   DateTime @default(now())
 }
